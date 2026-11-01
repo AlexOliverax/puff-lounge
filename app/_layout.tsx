@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { AgeGateModal } from '../src/components/AgeGateModal';
+import { InstallPrompt } from '../src/components/InstallPrompt';
 import { colors } from '../src/theme';
 
 // Previne a tela de splash de sumir antes do carregamento das fontes
@@ -81,6 +82,9 @@ export default function RootLayout() {
 
       {/* Modal Bloqueante de 18 Anos */}
       <AgeGateModal />
+
+      {/* Convite para instalar o PWA (somente Web, se ainda não instalado) */}
+      <InstallPrompt />
     </View>
   );
 }

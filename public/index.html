@@ -17,6 +17,21 @@
     <meta name="apple-mobile-web-app-title" content="Puff & Lounge" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    <!-- Captura o prompt de instalação do Android antes do app carregar -->
+    <script>
+      window.__plInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__plInstallPrompt = e;
+        window.dispatchEvent(new Event('pl-install-available'));
+      });
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
+
     <!-- Open Graph / Compartilhamento -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pufflounge.app.br/" />
