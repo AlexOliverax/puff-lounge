@@ -1,25 +1,65 @@
 {
   "expo": {
-    "name": "puff-lounge",
+    "name": "Puff & Lounge",
     "slug": "puff-lounge",
+    "scheme": "pufflounge",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0F0E0E",
+    "primaryColor": "#D4AF37",
+    "description": "Guia de luxo para apreciadores de charutos: lounges, tabacarias, confrarias, marcas e harmonizações.",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pufflounge.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usamos sua localização para mostrar lounges e tabacarias próximos a você."
+      }
     },
     "android": {
+      "package": "com.pufflounge.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0F0E0E",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Puff & Lounge",
+      "shortName": "Puff & Lounge",
+      "lang": "pt-BR",
+      "themeColor": "#0F0E0E",
+      "backgroundColor": "#0F0E0E",
+      "display": "standalone"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F0E0E",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos sua localização para mostrar lounges e tabacarias próximos a você."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
     }
   }
 }

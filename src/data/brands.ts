@@ -1,0 +1,271 @@
+/**
+ * Origens (terroirs) e Marcas icônicas — Enciclopédia "Arte & Terroir".
+ */
+import { Brand, Origin, OriginId } from '../types';
+
+export const ORIGINS: Origin[] = [
+  {
+    id: 'cuba',
+    label: 'Cuba (Habanos)',
+    flag: '🇨🇺',
+    region: 'Vuelta Abajo, Pinar del Río',
+    terroir:
+      'Solo arenoso-ferroso, clima subtropical e séculos de tradição. A Denominação de Origem Protegida "Habanos" garante que tripa, capote e capa sejam 100% cubanos e enrolados à mão.',
+  },
+  {
+    id: 'dominicana',
+    label: 'República Dominicana',
+    flag: '🇩🇴',
+    region: 'Vale do Cibao, Santiago',
+    terroir:
+      'Maior exportador mundial de charutos premium. O vale fértil do Cibao produz tabacos elegantes e cremosos, base de blends refinados e equilibrados.',
+  },
+  {
+    id: 'nicaragua',
+    label: 'Nicarágua',
+    flag: '🇳🇮',
+    region: 'Estelí, Jalapa, Condega',
+    terroir:
+      'Solo vulcânico rico em minerais confere tabacos encorpados, picantes e terrosos. Jalapa é famosa por capas sedosas; Estelí, pela potência.',
+  },
+  {
+    id: 'brasil',
+    label: 'Brasil (Bahia / Mata Fina)',
+    flag: '🇧🇷',
+    region: 'Recôncavo Baiano',
+    terroir:
+      'O tabaco Mata Fina, cultivado no Recôncavo desde o século XVII, é escuro, naturalmente adocicado e de baixa acidez. Muito valorizado como capa e tripa em blends do mundo todo.',
+  },
+  {
+    id: 'honduras',
+    label: 'Honduras',
+    flag: '🇭🇳',
+    region: 'Vale de Jamastrán, Danlí',
+    terroir:
+      'Terroir que preservou sementes Corojo cubanas, resultando em tabacos robustos, com notas de couro, terra e especiarias.',
+  },
+];
+
+export const ORIGIN_MAP: Record<OriginId, Origin> = ORIGINS.reduce(
+  (acc, o) => ({ ...acc, [o.id]: o }),
+  {} as Record<OriginId, Origin>,
+);
+
+export const STRENGTH_META = {
+  suave: { label: 'Suave', en: 'Mild', level: 1 },
+  medio: { label: 'Médio', en: 'Medium', level: 2 },
+  forte: { label: 'Forte', en: 'Full-bodied', level: 3 },
+} as const;
+
+export const BRANDS: Brand[] = [
+  {
+    id: 'cohiba',
+    name: 'Cohiba',
+    origin: 'cuba',
+    region: 'Vuelta Abajo — San Juan y Martínez',
+    founded: 1966,
+    founder: 'Eduardo Ribera & Celia Sánchez (El Laguito)',
+    masterBlenders: ['Avelino Lara', 'Norma Fernández'],
+    strength: 'medio',
+    tagline: 'O emblema máximo dos Habanos.',
+    history: [
+      'Nascida em 1966 como produção privada para o governo cubano, a Cohiba era enrolada em segredo na fábrica El Laguito, em Havana, a partir do blend pessoal de um guarda-costas de Fidel Castro.',
+      'Por quase duas décadas foi presente diplomático exclusivo, até ser lançada comercialmente em 1982. O nome vem da palavra taíno para os rolos de tabaco que Colombo viu os nativos fumarem em 1492.',
+      'Seu diferencial técnico é a terceira fermentação, realizada em barris, das folhas seco e ligero — o que confere a suavidade e a complexidade características da marca.',
+    ],
+    flavorProfile: ['Mel', 'Couro fino', 'Grama seca', 'Cacau', 'Baunilha'],
+    wrapper: 'Capa cubana Vuelta Abajo, colorado claro',
+    famousVitolas: [
+      { name: 'Siglo VI', vitolaId: 'gordo', ringGauge: 52, lengthMm: 150, notes: 'Cañonazo — o favorito da linha 1492' },
+      { name: 'Behike 52', vitolaId: 'robusto', ringGauge: 52, lengthMm: 119, notes: 'Com folha medio tiempo, raríssima' },
+      { name: 'Lanceros', vitolaId: 'panetela', ringGauge: 38, lengthMm: 192, notes: 'O formato original de 1966' },
+      { name: 'Robustos', vitolaId: 'robusto', ringGauge: 50, lengthMm: 124 },
+    ],
+    curiosity:
+      'A anilha original, com o perfil de um rosto taíno, só foi criada em 1982. Antes disso, os Cohiba não tinham anilha alguma.',
+    monogram: 'Co',
+    accent: '#E3C565',
+  },
+  {
+    id: 'montecristo',
+    name: 'Montecristo',
+    origin: 'cuba',
+    region: 'Vuelta Abajo',
+    founded: 1935,
+    founder: 'Alonso Menéndez & José "Pepe" García',
+    masterBlenders: ['Equipe H. Upmann'],
+    strength: 'medio',
+    tagline: 'O Habano mais vendido do mundo.',
+    history: [
+      'Criada em 1935 por Alonso Menéndez e Pepe García, a marca nasceu na fábrica H. Upmann com o nome inspirado em "O Conde de Monte Cristo", de Alexandre Dumas — o livro preferido dos torcedores durante as leituras nas galerias.',
+      'O "lector de tabaquería" lia romances em voz alta para os enroladores, e a obra de Dumas era tão popular que deu nome a uma das marcas mais icônicas de todos os tempos.',
+      'Após a Revolução, a família Menéndez se exilou — parte dela se estabeleceu na Bahia, fundando a Menendez Amerino e criando a Dona Flor.',
+    ],
+    flavorProfile: ['Cedro', 'Café torrado', 'Cacau', 'Especiarias doces', 'Terra'],
+    wrapper: 'Capa cubana colorado',
+    famousVitolas: [
+      { name: 'No. 2', vitolaId: 'torpedo', ringGauge: 52, lengthMm: 156, notes: 'Referência mundial em pirámides' },
+      { name: 'No. 4', vitolaId: 'corona', ringGauge: 42, lengthMm: 129, notes: 'O Habano mais vendido do planeta' },
+      { name: 'Edmundo', vitolaId: 'robusto', ringGauge: 52, lengthMm: 135 },
+    ],
+    curiosity: 'O logotipo com seis espadas cruzadas e uma flor-de-lis é homenagem direta aos mosqueteiros de Dumas.',
+    monogram: 'Mc',
+    accent: '#C9A24A',
+  },
+  {
+    id: 'partagas',
+    name: 'Partagás',
+    origin: 'cuba',
+    region: 'Vuelta Abajo',
+    founded: 1845,
+    founder: 'Don Jaime Partagás y Ravelo',
+    masterBlenders: ['Ramón Cifuentes (séc. XX)'],
+    strength: 'forte',
+    tagline: 'Terroso, intenso e lendário desde 1845.',
+    history: [
+      'Fundada pelo catalão Jaime Partagás, que possuía as melhores vegas de Vuelta Abajo e foi pioneiro em técnicas de fermentação e envelhecimento.',
+      'A fábrica na Calle Industria, atrás do Capitólio de Havana, tornou-se uma das mais visitadas do mundo e símbolo da indústria cubana por mais de 150 anos.',
+      'Conhecido por blends encorpados, o Partagás é o charuto preferido de apreciadores experientes que buscam intensidade e notas terrosas.',
+    ],
+    flavorProfile: ['Terra', 'Pimenta preta', 'Couro', 'Café amargo', 'Madeira'],
+    wrapper: 'Capa cubana colorado maduro',
+    famousVitolas: [
+      { name: 'Serie D No. 4', vitolaId: 'robusto', ringGauge: 50, lengthMm: 124, notes: 'O robusto mais vendido de Cuba' },
+      { name: 'Lusitanias', vitolaId: 'churchill', ringGauge: 49, lengthMm: 194, notes: 'Double corona clássico' },
+      { name: 'Serie P No. 2', vitolaId: 'torpedo', ringGauge: 52, lengthMm: 156 },
+    ],
+    curiosity: 'Jaime Partagás foi assassinado em 1868 em sua própria plantação — o caso jamais foi oficialmente resolvido.',
+    monogram: 'Pa',
+    accent: '#B5533C',
+  },
+  {
+    id: 'arturo-fuente',
+    name: 'Arturo Fuente',
+    origin: 'dominicana',
+    region: 'Chateau de la Fuente, Bonao',
+    founded: 1912,
+    founder: 'Arturo Fuente',
+    masterBlenders: ['Carlos Fuente Sr.', 'Carlos "Carlito" Fuente Jr.'],
+    strength: 'medio',
+    tagline: 'A dinastia que provou ser possível cultivar capa na República Dominicana.',
+    history: [
+      'Arturo Fuente fundou a empresa em 1912 em Ybor City, Tampa (EUA). Um incêndio destruiu a fábrica em 1924 e a família só retomou a produção anos depois, na garagem de casa.',
+      'Em 1980, Carlos Fuente Sr. e Carlito transferiram a produção para a República Dominicana. Em 1992, no Chateau de la Fuente, desafiaram especialistas cultivando capa dominicana de altíssima qualidade.',
+      'O resultado foi o Fuente Fuente OpusX (1995), um dos charutos mais cobiçados do mundo e o primeiro "puro" dominicano de sucesso.',
+    ],
+    flavorProfile: ['Cedro', 'Nozes tostadas', 'Creme', 'Canela', 'Pimenta branca'],
+    wrapper: 'Capa Cameroon ou Rosado dominicano (OpusX)',
+    famousVitolas: [
+      { name: 'Hemingway Short Story', vitolaId: 'torpedo', ringGauge: 49, lengthMm: 102, notes: 'Perfecto icônico' },
+      { name: 'OpusX Robusto', vitolaId: 'robusto', ringGauge: 50, lengthMm: 133 },
+      { name: 'Don Carlos No. 2', vitolaId: 'torpedo', ringGauge: 55, lengthMm: 152 },
+    ],
+    curiosity: 'A família mantém a fundação Cigar Family Charitable, que construiu escola e clínica para as comunidades de Bonao.',
+    monogram: 'AF',
+    accent: '#D9B45A',
+  },
+  {
+    id: 'padron',
+    name: 'Padrón',
+    origin: 'nicaragua',
+    region: 'Estelí & Condega',
+    founded: 1964,
+    founder: 'José Orlando Padrón',
+    masterBlenders: ['José Orlando Padrón', 'Jorge Padrón'],
+    strength: 'forte',
+    tagline: 'Prensados, envelhecidos e inconfundivelmente nicaraguenses.',
+    history: [
+      'José Orlando Padrón deixou Cuba em 1961 e, em Miami, comprou suas primeiras ferramentas de charutaria com um martelo dado por uma associação de refugiados — o martelo ainda figura no logo da marca.',
+      'Em 1970 estabeleceu-se em Estelí, Nicarágua, onde a família controla todas as etapas: cultivo, cura, fermentação e enrolamento, com tabaco envelhecido por no mínimo 4 anos.',
+      'As séries 1964 Anniversary (1994) e 1926 (2002) estão entre os charutos mais premiados da história da Cigar Aficionado.',
+    ],
+    flavorProfile: ['Cacau amargo', 'Café espresso', 'Terra vulcânica', 'Pimenta', 'Ameixa'],
+    wrapper: 'Capa nicaraguense Natural ou Maduro, box-pressed',
+    famousVitolas: [
+      { name: '1926 Serie No. 9', vitolaId: 'gordo', ringGauge: 56, lengthMm: 133 },
+      { name: '1964 Anniversary Exclusivo', vitolaId: 'robusto', ringGauge: 50, lengthMm: 140 },
+      { name: '1964 Torpedo', vitolaId: 'torpedo', ringGauge: 52, lengthMm: 152 },
+    ],
+    curiosity: 'Cada charuto Padrón leva um código serial na anilha para combater falsificações.',
+    monogram: 'Pd',
+    accent: '#A87B4F',
+  },
+  {
+    id: 'dona-flor',
+    name: 'Dona Flor',
+    origin: 'brasil',
+    region: 'Recôncavo Baiano — Cruz das Almas',
+    founded: 1977,
+    founder: 'Félix Menéndez (Menendez Amerino)',
+    masterBlenders: ['Família Menéndez'],
+    strength: 'medio',
+    tagline: 'A herança cubana encontrou a alma baiana.',
+    history: [
+      'Exilada de Cuba após 1959, a família Menéndez — criadora do Montecristo — encontrou no Recôncavo Baiano um terroir com tradição tabaqueira centenária.',
+      'Félix Menéndez fundou a Menendez Amerino em 1977, unindo técnicas cubanas ao tabaco Mata Fina. O nome Dona Flor homenageia a personagem de Jorge Amado em "Dona Flor e Seus Dois Maridos".',
+      'Hoje é referência do charuto premium brasileiro, exportado para dezenas de países e presente nas melhores tabacarias do país.',
+    ],
+    flavorProfile: ['Rapadura', 'Castanha-de-caju', 'Cacau baiano', 'Madeira doce', 'Especiarias'],
+    wrapper: 'Mata Fina ou Sumatra cultivado na Bahia',
+    famousVitolas: [
+      { name: 'Robusto', vitolaId: 'robusto', ringGauge: 50, lengthMm: 125 },
+      { name: 'Torpedo', vitolaId: 'torpedo', ringGauge: 52, lengthMm: 156 },
+      { name: 'Corona', vitolaId: 'corona', ringGauge: 42, lengthMm: 140 },
+    ],
+    curiosity: 'Na mesma região, em São Félix, a fábrica Dannemann produz charutos desde 1873 — o Recôncavo é o berço do charuto brasileiro.',
+    monogram: 'DF',
+    accent: '#7FA36B',
+  },
+  {
+    id: 'dannemann',
+    name: 'Dannemann',
+    origin: 'brasil',
+    region: 'São Félix, Bahia',
+    founded: 1873,
+    founder: 'Geraldo (Gerhard) Dannemann',
+    masterBlenders: ['Charuteiras do Recôncavo'],
+    strength: 'suave',
+    tagline: 'Mais de 150 anos de tradição às margens do Paraguaçu.',
+    history: [
+      'O alemão Gerhard Dannemann chegou à Bahia aos 18 anos e, em 1873, fundou sua fábrica em São Félix, que chegou a empregar mais de 4.000 pessoas.',
+      'A marca tornou-se fornecedora da Casa Imperial Brasileira e conquistou prêmios em exposições internacionais no fim do século XIX.',
+      'O antigo prédio da fábrica abriga hoje o Centro Cultural Dannemann, onde charuteiras ainda enrolam charutos à mão diante dos visitantes.',
+    ],
+    flavorProfile: ['Feno', 'Mel', 'Nozes', 'Madeira clara'],
+    wrapper: 'Sumatra e Mata Fina brasileiros',
+    famousVitolas: [
+      { name: 'Artist Line Robusto', vitolaId: 'robusto', ringGauge: 50, lengthMm: 127 },
+      { name: 'Artist Line Corona', vitolaId: 'corona', ringGauge: 42, lengthMm: 140 },
+    ],
+    curiosity: 'Dannemann foi agraciado pelo Imperador D. Pedro II com o título de fornecedor da Casa Imperial.',
+    monogram: 'Dn',
+    accent: '#C9B79C',
+  },
+  {
+    id: 'camacho',
+    name: 'Camacho',
+    origin: 'honduras',
+    region: 'Danlí, Vale de Jamastrán',
+    founded: 1961,
+    founder: 'Simón Camacho',
+    masterBlenders: ['Christian Eiroa (anos 1990–2008)', 'Equipe Davidoff'],
+    strength: 'forte',
+    tagline: 'Ousadia hondurenha e herança Corojo.',
+    history: [
+      'Simón Camacho, exilado cubano, fundou a marca em Miami em 1961. Nos anos 1990, a família Eiroa assumiu a empresa e levou a produção para Danlí, Honduras.',
+      'Os Eiroa preservaram a semente Corojo cubana, tornando o Camacho Corojo um dos poucos charutos "puros" hondurenhos de destaque.',
+      'Desde 2008 a marca integra o grupo Davidoff, com foco em charutos encorpados para paladares aventureiros.',
+    ],
+    flavorProfile: ['Pimenta vermelha', 'Couro', 'Café', 'Cedro', 'Terra'],
+    wrapper: 'Corojo hondurenho',
+    famousVitolas: [
+      { name: 'Corojo Robusto', vitolaId: 'robusto', ringGauge: 50, lengthMm: 127 },
+      { name: 'Triple Maduro Churchill', vitolaId: 'churchill', ringGauge: 48, lengthMm: 178 },
+    ],
+    curiosity: 'O Triple Maduro foi o primeiro charuto com capa, capote e tripa 100% maduro.',
+    monogram: 'Ca',
+    accent: '#B07A55',
+  },
+];
+
+export const getBrand = (id: string) => BRANDS.find((b) => b.id === id);

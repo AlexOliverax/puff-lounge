@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>%WEB_TITLE%</title>
+
+    <!-- PWA & iOS Home Screen Web App (pufflounge.app.br) -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Puff & Lounge" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph / Compartilhamento -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pufflounge.app.br/" />
+    <meta property="og:title" content="Puff & Lounge" />
+    <meta
+      property="og:description"
+      content="Guia de luxo para apreciadores de charutos: lounges, tabacarias, confrarias, marcas e harmonizações."
+    />
+    <meta property="og:image" content="https://pufflounge.app.br/icon-512.png" />
+
+    <!-- The `react-native-web` recommended style reset -->
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        background-color: #0F0E0E;
+        color: #F5F2EB;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Você precisa habilitar o JavaScript para abrir o Puff &amp; Lounge.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
+

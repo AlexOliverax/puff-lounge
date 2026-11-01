@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local upload helper scripts
+subir-github.ps1
+subir-github.bat
