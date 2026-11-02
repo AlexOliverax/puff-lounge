@@ -2,7 +2,7 @@
  * Aba 4: MEU UMIDOR VIRTUAL (Perfil & Coleção Pessoal)
  * Locais favoritos salvos, charutos provados/desejados e notas de degustação.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -19,7 +19,7 @@ import { useRouter } from 'expo-router';
 import { Badge, Button, Card } from '../../src/components/ui';
 import { VenueCard } from '../../src/components/VenueCard';
 import { BRANDS } from '../../src/data/brands';
-import { VENUES } from '../../src/data/venues';
+import { getAllKnownVenues, hydrateDiscoveredCache } from '../../src/services/nearbyVenues';
 import { useUserStore } from '../../src/store/useUserStore';
 import { colors, fonts, radius, spacing, type } from '../../src/theme';
 
@@ -44,7 +44,14 @@ export default function HumidorScreen() {
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(5);
 
-  const favoriteVenues = VENUES.filter((v) => favoriteVenueIds.includes(v.id));
+  const [, setHydratedExtra] = useState(false);
+  useEffect(() => {
+    hydrateDiscoveredCache().then(() => setHydratedExtra(true));
+  }, []);
+
+  const favoriteVenues = getAllKnownVenues().filter((v) =>
+    favoriteVenueIds.includes(v.id),
+  );
 
   const handleSaveCigar = () => {
     if (!cigarName.trim()) return;

@@ -16,7 +16,7 @@ export function routeUrl(app: NavApp, venue: Venue): string {
       return `https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`;
     case 'google':
     default:
-      return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&destination_place_id=${label}`;
+      return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
   }
 }
 

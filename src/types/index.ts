@@ -58,6 +58,8 @@ export interface Venue {
   hours: OpeningHours[];
   images: number[]; // require() locais
   highlights: string[];
+  /** true para curadoria editorial fixa; false para locais descobertos no mapa da região */
+  isCurated?: boolean;
 }
 
 // ───────────────────────── Marcas ─────────────────────────

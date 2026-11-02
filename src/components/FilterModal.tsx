@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from './ui';
 import { AMENITIES, CATEGORY_META } from '../data/amenities';
-import { useExploreStore } from '../store/useExploreStore';
+import { RADIUS_OPTIONS, useExploreStore } from '../store/useExploreStore';
 import { colors, fonts, radius, spacing, type } from '../theme';
 import { AmenityId, VenueCategory, VenueUsage } from '../types';
 
@@ -34,12 +34,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose }) =>
   } = useExploreStore();
 
   const categories: VenueCategory[] = ['lounge', 'shop', 'club'];
-  const distances: { label: string; value: number | null }[] = [
-    { label: 'Todos', value: null },
-    { label: 'Até 5 km', value: 5 },
-    { label: 'Até 15 km', value: 15 },
-    { label: 'Até 50 km', value: 50 },
-  ];
+  const distances = RADIUS_OPTIONS;
 
   return (
     <Modal visible={visible} animationType="slide" transparent>

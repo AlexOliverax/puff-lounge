@@ -3,7 +3,7 @@
  * Carrossel de fotos HD, rotas diretas (Google/Apple/Waze), ligação,
  * lista de comodidades, dress code e marcas parceiras da casa.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -22,9 +22,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Badge, Button, Card, GoldDivider, StarRating } from '../../src/components/ui';
 import { AMENITY_MAP, CATEGORY_META, WEEKDAYS } from '../../src/data/amenities';
 import { BRANDS } from '../../src/data/brands';
-import { VENUES } from '../../src/data/venues';
 import { distanceKm, formatDistance, isOpenNow, priceLabel } from '../../src/lib/geo';
 import { callVenue, openRoute, openWebsite } from '../../src/lib/links';
+import { hydrateDiscoveredCache, resolveVenueById } from '../../src/services/nearbyVenues';
 import { useExploreStore } from '../../src/store/useExploreStore';
 import { useUserStore } from '../../src/store/useUserStore';
 import { colors, fonts, radius, shadows, spacing, type } from '../../src/theme';
@@ -34,10 +34,16 @@ const { width } = Dimensions.get('window');
 export default function VenueDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { userLocation } = useExploreStore();
+  const { userLocation, nearbyVenues } = useExploreStore();
   const { favoriteVenueIds, toggleFavoriteVenue } = useUserStore();
+  const [, setCacheLoaded] = useState(false);
 
-  const venue = VENUES.find((v) => v.id === id);
+  useEffect(() => {
+    hydrateDiscoveredCache().then(() => setCacheLoaded(true));
+  }, []);
+
+  const venue =
+    resolveVenueById(id) || nearbyVenues.find((v) => v.id === id);
 
   if (!venue) {
     return (
@@ -124,13 +130,15 @@ export default function VenueDetailScreen() {
               onPress={() => openRoute('google', venue)}
               style={{ flex: 1 }}
             />
-            <Button
-              label="Ligar"
-              icon="call-outline"
-              variant="outline"
-              onPress={() => callVenue(venue)}
-              style={{ flex: 0.8, marginLeft: spacing.sm }}
-            />
+            {venue.phone ? (
+              <Button
+                label="Ligar"
+                icon="call-outline"
+                variant="outline"
+                onPress={() => callVenue(venue)}
+                style={{ flex: 0.8, marginLeft: spacing.sm }}
+              />
+            ) : null}
             {venue.website && (
               <Button
                 label="Site"
@@ -173,28 +181,32 @@ export default function VenueDetailScreen() {
           </View>
 
           {/* Marcas de Charuto em Destaque na Casa */}
-          <Text style={styles.sectionHeader}>MARCAS EM DESTAQUE NO UMIDOR</Text>
-          <View style={styles.brandsRow}>
-            {venue.houseBrands.map((bId) => {
-              const brand = BRANDS.find((b) => b.id === bId);
-              return (
-                <Card
-                  key={bId}
-                  onPress={() =>
-                    brand &&
-                    router.push({
-                      pathname: '/brand/[id]',
-                      params: { id: brand.id },
-                    })
-                  }
-                  style={styles.brandChip}
-                >
-                  <Text style={styles.brandChipName}>{brand ? brand.name : bId}</Text>
-                  <Ionicons name="arrow-forward" size={14} color={colors.gold} />
-                </Card>
-              );
-            })}
-          </View>
+          {venue.houseBrands.length > 0 && (
+            <>
+              <Text style={styles.sectionHeader}>MARCAS EM DESTAQUE NO UMIDOR</Text>
+              <View style={styles.brandsRow}>
+                {venue.houseBrands.map((bId) => {
+                  const brand = BRANDS.find((b) => b.id === bId);
+                  return (
+                    <Card
+                      key={bId}
+                      onPress={() =>
+                        brand &&
+                        router.push({
+                          pathname: '/brand/[id]',
+                          params: { id: brand.id },
+                        })
+                      }
+                      style={styles.brandChip}
+                    >
+                      <Text style={styles.brandChipName}>{brand ? brand.name : bId}</Text>
+                      <Ionicons name="arrow-forward" size={14} color={colors.gold} />
+                    </Card>
+                  );
+                })}
+              </View>
+            </>
+          )}
 
           {/* Horários de Funcionamento */}
           <Text style={styles.sectionHeader}>HORÁRIOS DE FUNCIONAMENTO</Text>

@@ -68,10 +68,29 @@ const vitolaIndex = new Fuse(VITOLAS, {
   ],
 });
 
-export function searchVenues(query: string): Venue[] {
+export function searchVenues(query: string, extraVenues: Venue[] = []): Venue[] {
+  const curated = VENUES.map((v) => ({ ...v, isCurated: true }));
+  const all = extraVenues.length > 0 ? [...curated, ...extraVenues] : curated;
   const q = normalize(query.trim());
-  if (!q) return VENUES;
-  return venueIndex.search(q).map((r) => r.item);
+  if (!q) return all;
+
+  if (extraVenues.length === 0) {
+    return venueIndex.search(q).map((r) => r.item);
+  }
+
+  const dynamicDocs = all.map((v) => ({ ...v, categoryLabel: CATEGORY_META[v.category].label }));
+  const dynamicIndex = new Fuse(dynamicDocs, {
+    ...baseOptions,
+    keys: [
+      { name: 'name', weight: 3 },
+      { name: 'neighborhood', weight: 1.5 },
+      { name: 'city', weight: 1.5 },
+      { name: 'categoryLabel', weight: 1 },
+      { name: 'tagline', weight: 0.6 },
+      { name: 'highlights', weight: 0.5 },
+    ],
+  });
+  return dynamicIndex.search(q).map((r) => r.item);
 }
 
 export function searchBrands(query: string): Brand[] {
