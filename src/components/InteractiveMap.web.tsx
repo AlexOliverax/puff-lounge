@@ -1,6 +1,6 @@
 /**
  * Mapa Interativo Real para Web / PWA (iOS Safari, Android Chrome e Desktop).
- * Utiliza Leaflet + CartoDB Dark Matter (ruas reais em tema obsidiana/ouro, 100% gratuito),
+ * Utiliza Leaflet + OpenStreetMap oficial (100% gratuito e sem API key) com filtro escuro de luxo,
  * desenhando em tempo real o pino do GPS do usuário, o círculo do raio em km e os locais encontrados.
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -36,6 +36,10 @@ function ensureLuxuryMapStyles() {
     .leaflet-container {
       background: #0A0A0A !important;
       font-family: Inter_500Medium, sans-serif;
+    }
+    /* Tema escuro de luxo sobre os blocos oficiais gratuitos do OpenStreetMap */
+    .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(92%) saturate(60%);
     }
     .leaflet-control-zoom {
       border: 1px solid rgba(212, 175, 55, 0.35) !important;
@@ -151,9 +155,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
         zoomControl: true,
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19,
       }).addTo(map);
 

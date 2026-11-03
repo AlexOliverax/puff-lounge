@@ -256,17 +256,18 @@ function classifyOsmElement(name: string, tags: Record<string, string>): {
 
 const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
 ];
 
 async function queryOverpass(overpassQl: string): Promise<any[]> {
   for (const endpoint of OVERPASS_ENDPOINTS) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 11000);
+    const timer = setTimeout(() => controller.abort(), 18000);
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset:UTF-8' },
         body: `data=${encodeURIComponent(overpassQl)}`,
         signal: controller.signal,
       });
@@ -305,13 +306,15 @@ export async function fetchNearbyOsmVenues(
   const lat = coords.latitude.toFixed(5);
   const lon = coords.longitude.toFixed(5);
 
-  const query = `[out:json][timeout:12];
+  const query = `[out:json][timeout:20];
 (
-  nwr["shop"~"^(tobacco|cigar)$"](around:${rMeters},${lat},${lon});
+  nwr["shop"="tobacco"](around:${rMeters},${lat},${lon});
+  nwr["shop"="cigar"](around:${rMeters},${lat},${lon});
   nwr["club"="cigar"](around:${rMeters},${lat},${lon});
-  nwr["name"~"tabacaria|charutaria|charuto|charutos|cigar|habano|habanos|humidor",i](around:${rNameMeters},${lat},${lon});
+  nwr["shop"]["name"~"tabacaria|charutaria|charuto|charutos|cigar|habano|habanos|humidor",i](around:${rNameMeters},${lat},${lon});
+  nwr["amenity"~"^(bar|cafe|pub|nightclub|restaurant)$"]["name"~"tabacaria|charutaria|charuto|charutos|cigar|habano|habanos|humidor",i](around:${rNameMeters},${lat},${lon});
 );
-out center tags 100;`;
+out center tags 120;`;
 
   const elements = await queryOverpass(query);
   const results: Venue[] = [];
@@ -413,4 +416,3 @@ out center tags 100;`;
   await persistDiscoveredVenues(results);
   return results;
 }
-
