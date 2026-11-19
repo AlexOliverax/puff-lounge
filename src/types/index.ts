@@ -174,6 +174,8 @@ export interface HumidorEntry {
   vitola?: string;
   status: 'provado' | 'desejo';
   rating?: number; // 1–5
+  quantity?: number; // unidades no umidor
+  pairedWith?: string; // bebida harmonizada
   notes: string;
   createdAt: number;
 }

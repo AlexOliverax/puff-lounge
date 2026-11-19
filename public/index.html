@@ -9,16 +9,25 @@
     />
     <title>%WEB_TITLE%</title>
 
+    <!-- Tema & Cor da Barra de Status (Android Chrome, iOS Safari, Desktop PWA) -->
+    <meta name="theme-color" content="#0F0E0E" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="Guia de luxo para apreciadores de charutos: lounges, tabacarias, confrarias, marcas, harmonizações e umidor virtual."
+    />
+
     <!-- PWA & iOS Home Screen Web App (pufflounge.app.br) -->
-    <link rel="manifest" href="/manifest.json?v=2" />
+    <link rel="manifest" href="/manifest.json?v=3" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Puff & Lounge" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3" />
     <link rel="stylesheet" href="/leaflet.css" />
 
-    <!-- Captura o prompt de instalação do Android antes do app carregar -->
+    <!-- Captura o prompt de instalação do Android antes do app carregar e registra o Service Worker -->
     <script>
       window.__plInstallPrompt = null;
       window.addEventListener('beforeinstallprompt', function (e) {
@@ -28,22 +37,36 @@
       });
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
+          navigator.serviceWorker
+            .register('/sw.js?v=3')
+            .then(function (reg) {
+              if (reg && reg.update) reg.update();
+            })
+            .catch(function () {});
         });
       }
     </script>
 
-    <!-- Open Graph / Compartilhamento -->
+    <!-- Open Graph / Compartilhamento no WhatsApp, iMessage, Instagram e Telegram -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Puff & Lounge" />
+    <meta property="og:locale" content="pt_BR" />
     <meta property="og:url" content="https://pufflounge.app.br/" />
-    <meta property="og:title" content="Puff & Lounge" />
+    <meta property="og:title" content="Puff & Lounge — Guia de Charutos & Lounges" />
     <meta
       property="og:description"
-      content="Guia de luxo para apreciadores de charutos: lounges, tabacarias, confrarias, marcas e harmonizações."
+      content="Descubra cigar lounges, tabacarias e confrarias na sua região, enciclopédia de marcas, guia de harmonização e umidor pessoal."
     />
-    <meta property="og:image" content="https://pufflounge.app.br/icon-512.png" />
+    <meta property="og:image" content="https://pufflounge.app.br/icon-512.png?v=3" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Puff & Lounge — Guia de Charutos & Lounges" />
+    <meta
+      name="twitter:description"
+      content="Descubra cigar lounges, tabacarias e confrarias na sua região, enciclopédia de marcas, guia de harmonização e umidor pessoal."
+    />
+    <meta name="twitter:image" content="https://pufflounge.app.br/icon-512.png?v=3" />
 
-    <!-- The `react-native-web` recommended style reset -->
+    <!-- Reset e acabamento visual de luxo (Safe Areas iOS, Scrollbars Douradas, Anti-aliasing) -->
     <style id="expo-reset">
       html,
       body {
@@ -51,14 +74,39 @@
         background-color: #0F0E0E;
         color: #F5F2EB;
         -webkit-tap-highlight-color: transparent;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior-y: none;
+        user-select: none;
+      }
+      input,
+      textarea {
+        user-select: text;
+        outline: none;
       }
       body {
         overflow: hidden;
+        padding-top: env(safe-area-inset-top, 0px);
       }
       #root {
         display: flex;
         height: 100%;
         flex: 1;
+      }
+      /* Scrollbars discretas em ouro envelhecido no desktop */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0F0E0E;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.28);
+        border-radius: 999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(212, 175, 55, 0.55);
       }
     </style>
   </head>
@@ -68,4 +116,3 @@
     <div id="root"></div>
   </body>
 </html>
-
