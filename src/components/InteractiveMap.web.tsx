@@ -1,16 +1,17 @@
 /**
  * Mapa Interativo Real para Web / PWA (iOS Safari, Android Chrome e Desktop).
  * Utiliza Leaflet + OpenStreetMap oficial (100% gratuito e sem API key) com filtro escuro de luxo,
- * desenhando em tempo real o pino do GPS do usuário, o círculo do raio em km e os locais encontrados.
+ * desenhando em tempo real o pino do GPS do usuário, o círculo do raio em km, legenda e navegação rápida entre locais.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { CATEGORY_META } from '../data/amenities';
-import { distanceKm, formatDistance } from '../lib/geo';
+import { distanceKm, formatDistance, isOpenNow } from '../lib/geo';
 import { openRoute } from '../lib/links';
 import { useExploreStore } from '../store/useExploreStore';
+import { useUserStore } from '../store/useUserStore';
 import { colors, fonts, radius, spacing } from '../theme';
 import { Venue } from '../types';
 
@@ -22,7 +23,6 @@ function ensureLuxuryMapStyles() {
   if (typeof document === 'undefined') return;
   if (document.getElementById('pl-leaflet-luxury-css')) return;
 
-  // Garante o CSS base do Leaflet mesmo em dev server
   if (!document.querySelector('link[href*="leaflet.css"]')) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -60,6 +60,19 @@ function ensureLuxuryMapStyles() {
     .leaflet-control-attribution a {
       color: #9E988E !important;
     }
+    .leaflet-tooltip.pl-pin-tooltip {
+      background: rgba(15, 14, 14, 0.94) !important;
+      border: 1px solid rgba(212, 175, 55, 0.5) !important;
+      color: #F5F2EB !important;
+      border-radius: 8px !important;
+      padding: 4px 8px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
+    }
+    .leaflet-tooltip-top.pl-pin-tooltip:before {
+      border-top-color: rgba(212, 175, 55, 0.5) !important;
+    }
     @keyframes plPulse {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.65); }
       70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(212, 175, 55, 0); }
@@ -89,13 +102,13 @@ function ensureLuxuryMapStyles() {
       transition: transform 0.15s ease;
     }
     .pl-venue-pin--selected {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       background: #D4AF37;
       border: 2.5px solid #F5F2EB;
       color: #0F0E0E;
-      font-size: 16px;
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.65);
+      font-size: 17px;
+      box-shadow: 0 0 22px rgba(212, 175, 55, 0.75);
     }
   `;
   document.head.appendChild(style);
@@ -110,7 +123,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
     selectVenue,
     requestLocation,
     locationStatus,
+    stepRadius,
   } = useExploreStore();
+  const { favoriteVenueIds, toggleFavoriteVenue } = useUserStore();
 
   const hostRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
@@ -121,7 +136,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
   const lastFitKeyRef = useRef<string>('');
   const [mapReady, setMapReady] = useState(false);
 
-  const selectedVenue = venues.find((v) => v.id === selectedVenueId) || venues[0];
+  const selectedIndex = Math.max(
+    0,
+    venues.findIndex((v) => v.id === selectedVenueId),
+  );
+  const selectedVenue = venues[selectedIndex] || venues[0];
 
   // Inicializa o mapa Leaflet uma única vez
   useEffect(() => {
@@ -172,7 +191,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
         { icon: userIcon, zIndexOffset: 1000 },
       )
         .addTo(map)
-        .bindTooltip('Centro da busca', { direction: 'top', offset: [0, -10] });
+        .bindTooltip('Centro da sua busca', {
+          direction: 'top',
+          offset: [0, -10],
+          className: 'pl-pin-tooltip',
+        });
 
       markersLayerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
@@ -253,7 +276,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
     venues.forEach((v) => {
       const isSelected = v.id === selectedVenue?.id;
       const symbol = v.category === 'lounge' ? '★' : v.category === 'club' ? '♛' : '◆';
-      const size = isSelected ? 40 : 32;
+      const size = isSelected ? 42 : 32;
 
       const icon = L.divIcon({
         className: '',
@@ -265,6 +288,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
       const marker = L.marker([v.coords.latitude, v.coords.longitude], {
         icon,
         zIndexOffset: isSelected ? 900 : 200,
+      });
+
+      marker.bindTooltip(`${v.name} · ★ ${v.rating.toFixed(1)}`, {
+        direction: 'top',
+        offset: [0, -16],
+        className: 'pl-pin-tooltip',
       });
 
       marker.on('click', () => {
@@ -285,6 +314,21 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
     }
   };
 
+  const handleCycleVenue = (dir: -1 | 1) => {
+    if (venues.length === 0) return;
+    const nextIdx = (selectedIndex + dir + venues.length) % venues.length;
+    const nextVenue = venues[nextIdx];
+    selectVenue(nextVenue.id);
+    if (mapRef.current) {
+      mapRef.current.panTo([nextVenue.coords.latitude, nextVenue.coords.longitude], {
+        animate: true,
+      });
+    }
+  };
+
+  const isSelectedOpen = selectedVenue ? isOpenNow(selectedVenue.hours) : false;
+  const isSelectedFav = selectedVenue ? favoriteVenueIds.includes(selectedVenue.id) : false;
+
   return (
     <View style={styles.container}>
       <View
@@ -303,19 +347,25 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
         />
       </Pressable>
 
-      {/* Contador de resultados no raio */}
-      <View style={styles.countPill}>
-        <Text style={styles.countPillText}>
-          {venues.length}{' '}
-          {venues.length === 1 ? 'local neste raio' : 'locais neste raio'}
-        </Text>
+      {/* Contador de resultados + Legenda dos Pinos */}
+      <View style={styles.topBadgesWrap}>
+        <View style={styles.countPill}>
+          <Text style={styles.countPillText}>
+            {venues.length}{' '}
+            {venues.length === 1 ? 'local neste raio' : 'locais neste raio'}
+          </Text>
+        </View>
+        <View style={styles.legendPill}>
+          <Text style={styles.legendText}>★ Lounge · ◆ Tabacaria · ♛ Confraria</Text>
+        </View>
       </View>
 
-      {/* Card Flutuante do Local Selecionado */}
-      {selectedVenue ? (
-        <View style={styles.floatingPreview}>
-          <View style={styles.previewContent}>
-            <View style={{ flex: 1 }}>
+      {/* Card Flutuante Centralizado do Local Selecionado */}
+      <View style={styles.bottomCardWrapper} pointerEvents="box-none">
+        {selectedVenue ? (
+          <View style={styles.floatingPreview}>
+            {/* Cabeçalho com contador e botões Anterior / Próximo */}
+            <View style={styles.previewTopBar}>
               <View style={styles.previewMetaRow}>
                 <Text style={styles.previewCategory}>
                   {CATEGORY_META[selectedVenue.category].short.toUpperCase()}
@@ -323,45 +373,107 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({ venues }) => {
                 <Text style={styles.previewDist}>
                   · {formatDistance(distanceKm(userLocation, selectedVenue.coords))}
                 </Text>
+                <View style={styles.openBadgeInline}>
+                  <View
+                    style={[
+                      styles.openDot,
+                      { backgroundColor: isSelectedOpen ? colors.success : colors.danger },
+                    ]}
+                  />
+                  <Text style={styles.openBadgeText}>
+                    {isSelectedOpen ? 'Aberto' : 'Fechado'}
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.previewTitle} numberOfLines={1}>
-                {selectedVenue.name}
-              </Text>
-              <Text style={styles.previewAddress} numberOfLines={1}>
-                {selectedVenue.neighborhood} · {selectedVenue.city}, {selectedVenue.state}
-              </Text>
+
+              {venues.length > 1 && (
+                <View style={styles.cycleControls}>
+                  <Pressable
+                    onPress={() => handleCycleVenue(-1)}
+                    style={styles.cycleBtn}
+                    hitSlop={6}
+                  >
+                    <Ionicons name="chevron-back" size={14} color={colors.gold} />
+                  </Pressable>
+                  <Text style={styles.cycleIndexText}>
+                    {selectedIndex + 1}/{venues.length}
+                  </Text>
+                  <Pressable
+                    onPress={() => handleCycleVenue(1)}
+                    style={styles.cycleBtn}
+                    hitSlop={6}
+                  >
+                    <Ionicons name="chevron-forward" size={14} color={colors.gold} />
+                  </Pressable>
+                </View>
+              )}
             </View>
 
-            <View style={styles.previewActions}>
-              <Pressable
-                onPress={() => openRoute('google', selectedVenue)}
-                style={styles.routeIconBtn}
-              >
-                <Ionicons name="navigate" size={16} color={colors.gold} />
-              </Pressable>
+            <View style={styles.previewContent}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewTitle} numberOfLines={1}>
+                  {selectedVenue.name}
+                </Text>
+                <Text style={styles.previewAddress} numberOfLines={1}>
+                  {selectedVenue.neighborhood} · {selectedVenue.city}, {selectedVenue.state}
+                </Text>
+              </View>
 
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: '/venue/[id]',
-                    params: { id: selectedVenue.id },
-                  })
-                }
-                style={styles.previewBtn}
-              >
-                <Text style={styles.previewBtnText}>Detalhes</Text>
-                <Ionicons name="chevron-forward" size={15} color="#0F0E0E" />
-              </Pressable>
+              <View style={styles.previewActions}>
+                <Pressable
+                  onPress={() => toggleFavoriteVenue(selectedVenue.id)}
+                  style={styles.routeIconBtn}
+                >
+                  <Ionicons
+                    name={isSelectedFav ? 'bookmark' : 'bookmark-outline'}
+                    size={16}
+                    color={isSelectedFav ? colors.gold : colors.textSecondary}
+                  />
+                </Pressable>
+
+                <Pressable
+                  onPress={() => openRoute('waze', selectedVenue)}
+                  style={styles.routeIconBtn}
+                >
+                  <Ionicons name="car-sport-outline" size={16} color={colors.gold} />
+                </Pressable>
+
+                <Pressable
+                  onPress={() => openRoute('google', selectedVenue)}
+                  style={styles.routeIconBtn}
+                >
+                  <Ionicons name="navigate" size={16} color={colors.gold} />
+                </Pressable>
+
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: '/venue/[id]',
+                      params: { id: selectedVenue.id },
+                    })
+                  }
+                  style={styles.previewBtn}
+                >
+                  <Text style={styles.previewBtnText}>Detalhes</Text>
+                  <Ionicons name="chevron-forward" size={15} color="#0F0E0E" />
+                </Pressable>
+              </View>
             </View>
           </View>
-        </View>
-      ) : (
-        <View style={styles.floatingPreview}>
-          <Text style={styles.emptyMapText}>
-            Nenhum local neste raio. Toque em "+" acima para ampliar o alcance em km.
-          </Text>
-        </View>
-      )}
+        ) : (
+          <View style={styles.floatingPreview}>
+            <Text style={styles.emptyMapText}>
+              Nenhum local neste raio. Amplie o alcance em km para explorar mais opções.
+            </Text>
+            {filters.maxDistanceKm !== null && (
+              <Pressable onPress={() => stepRadius('up')} style={styles.expandInlineBtn}>
+                <Ionicons name="add-circle-outline" size={16} color="#0F0E0E" />
+                <Text style={styles.expandInlineBtnText}>Ampliar Raio</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -392,43 +504,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 1000,
   },
-  countPill: {
+  topBadgesWrap: {
     position: 'absolute',
     top: spacing.md,
-    left: 58,
-    backgroundColor: 'rgba(15, 14, 14, 0.85)',
+    left: 56,
+    right: 64,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 1000,
+  },
+  countPill: {
+    backgroundColor: 'rgba(15, 14, 14, 0.88)',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     borderRadius: radius.pill,
     paddingVertical: 5,
     paddingHorizontal: 12,
-    zIndex: 1000,
   },
   countPillText: {
     fontFamily: fonts.sansSemiBold,
     fontSize: 11,
-    color: colors.goldSoft,
+    color: colors.gold,
   },
-  floatingPreview: {
+  legendPill: {
+    backgroundColor: 'rgba(15, 14, 14, 0.82)',
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.pill,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  legendText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+  bottomCardWrapper: {
     position: 'absolute',
     bottom: spacing.md,
     left: spacing.md,
     right: spacing.md,
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  floatingPreview: {
+    width: '100%',
+    maxWidth: 640,
     backgroundColor: 'rgba(26, 24, 23, 0.96)',
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     padding: spacing.md,
-    zIndex: 1000,
   },
-  previewContent: {
+  previewTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 4,
   },
   previewMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
   },
   previewCategory: {
@@ -442,11 +581,56 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.goldSoft,
   },
+  openBadgeInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+    borderRadius: radius.pill,
+    marginLeft: 2,
+  },
+  openDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  openBadgeText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+  cycleControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cycleBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cycleIndexText: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 11,
+    color: colors.goldSoft,
+    marginHorizontal: 2,
+  },
+  previewContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   previewTitle: {
     fontFamily: fonts.serifBold,
     fontSize: 16,
     color: colors.text,
-    marginTop: 2,
   },
   previewAddress: {
     fontFamily: fonts.sans,
@@ -458,21 +642,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginLeft: spacing.sm,
-    gap: spacing.xs,
+    gap: 6,
   },
   routeIconBtn: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: radius.md,
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   previewBtn: {
     backgroundColor: colors.gold,
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: radius.md,
     flexDirection: 'row',
@@ -489,5 +673,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  expandInlineBtn: {
+    marginTop: spacing.sm,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.gold,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+  },
+  expandInlineBtnText: {
+    fontFamily: fonts.sansBold,
+    fontSize: 12,
+    color: '#0F0E0E',
   },
 });

@@ -1,6 +1,6 @@
 /**
  * Card de Local (Venue Card) refinado e interativo.
- * Apresenta foto de alta definição, categoria, badges, avaliação, distância e ações rápidas.
+ * Apresenta foto HD, selo de curadoria, categoria, comodidades rápidas, avaliação, distância e atalho de rota GPS.
  */
 import React from 'react';
 import {
@@ -16,11 +16,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Badge, StarRating } from './ui';
-import { CATEGORY_META } from '../data/amenities';
+import { AMENITY_MAP, CATEGORY_META } from '../data/amenities';
 import { distanceKm, formatDistance, isOpenNow, priceLabel, todayHoursLabel } from '../lib/geo';
+import { openRoute } from '../lib/links';
 import { useExploreStore } from '../store/useExploreStore';
 import { useUserStore } from '../store/useUserStore';
-import { colors, fonts, radius, shadows, spacing, type } from '../theme';
+import { colors, fonts, radius, shadows, spacing } from '../theme';
 import { Venue } from '../types';
 
 interface VenueCardProps {
@@ -59,18 +60,27 @@ export const VenueCard: React.FC<VenueCardProps> = ({ venue, style }) => {
       <View style={styles.imageWrapper}>
         <Image source={venue.images[0]} style={styles.coverImage} resizeMode="cover" />
         <LinearGradient
-          colors={['rgba(15, 14, 14, 0.2)', 'transparent', 'rgba(15, 14, 14, 0.95)']}
+          colors={['rgba(15, 14, 14, 0.25)', 'transparent', 'rgba(15, 14, 14, 0.96)']}
           style={StyleSheet.absoluteFill}
         />
 
-        {/* Categoria Flutuante */}
+        {/* Categoria Flutuante + Selo Curadoria */}
         <View style={styles.topBadgesRow}>
-          <Badge
-            label={categoryMeta.short}
-            variant="gold"
-            icon={categoryMeta.icon as any}
-            size="md"
-          />
+          <View style={styles.leftBadges}>
+            <Badge
+              label={categoryMeta.short}
+              variant="gold"
+              icon={categoryMeta.icon as any}
+              size="md"
+            />
+            {venue.isCurated !== false && (
+              <View style={styles.curatedTag}>
+                <Ionicons name="sparkles" size={11} color={colors.gold} />
+                <Text style={styles.curatedTagText}>Curadoria</Text>
+              </View>
+            )}
+          </View>
+
           <Pressable
             onPress={(e) => {
               e.stopPropagation();
@@ -122,12 +132,42 @@ export const VenueCard: React.FC<VenueCardProps> = ({ venue, style }) => {
           {venue.tagline}
         </Text>
 
-        {/* Rodapé: Avaliação e Horário */}
+        {/* Mini-pílulas de infraestrutura (até 4 comodidades principais) */}
+        {venue.amenities.length > 0 && (
+          <View style={styles.amenitiesPreviewRow}>
+            {venue.amenities.slice(0, 4).map((aId) => {
+              const meta = AMENITY_MAP[aId];
+              if (!meta) return null;
+              return (
+                <View key={aId} style={styles.amenityMiniChip}>
+                  <Ionicons name={meta.icon as any} size={11} color={colors.goldSoft} />
+                  <Text style={styles.amenityMiniText}>{meta.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Rodapé: Avaliação, Horário e Botão Rápido de Rota */}
         <View style={styles.footerRow}>
-          <StarRating rating={venue.rating} count={venue.reviewsCount} />
-          <Text style={styles.hoursText} numberOfLines={1}>
-            {todayHoursLabel(venue)}
-          </Text>
+          <View style={styles.footerLeft}>
+            <StarRating rating={venue.rating} count={venue.reviewsCount} />
+            <Text style={styles.hoursText} numberOfLines={1}>
+              · {todayHoursLabel(venue)}
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              openRoute('google', venue);
+            }}
+            hitSlop={6}
+            style={styles.quickRouteBtn}
+          >
+            <Ionicons name="navigate" size={12} color={colors.gold} />
+            <Text style={styles.quickRouteText}>Rota</Text>
+          </Pressable>
         </View>
       </View>
     </Pressable>
@@ -149,7 +189,7 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: '100%',
-    height: 180,
+    height: 185,
     backgroundColor: colors.surfaceAlt,
     position: 'relative',
   },
@@ -165,6 +205,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  leftBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  curatedTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(15, 14, 14, 0.82)',
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+  },
+  curatedTagText: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 10,
+    color: colors.goldSoft,
+    letterSpacing: 0.3,
   },
   favButton: {
     width: 36,
@@ -188,9 +250,9 @@ const styles = StyleSheet.create({
   openStatusTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 14, 14, 0.8)',
+    backgroundColor: 'rgba(15, 14, 14, 0.84)',
     paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingHorizontal: 9,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -209,9 +271,9 @@ const styles = StyleSheet.create({
   distanceTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 14, 14, 0.8)',
+    backgroundColor: 'rgba(15, 14, 14, 0.84)',
     paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingHorizontal: 9,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: 'rgba(212, 175, 55, 0.3)',
@@ -256,6 +318,28 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
   },
+  amenitiesPreviewRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  amenityMiniChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+  },
+  amenityMiniText: {
+    fontFamily: fonts.sans,
+    fontSize: 11,
+    color: colors.textSecondary,
+  },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -265,10 +349,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderSubtle,
   },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
   hoursText: {
     fontFamily: fonts.sans,
     fontSize: 12,
     color: colors.textMuted,
-    maxWidth: '55%',
+    marginLeft: 6,
+    flex: 1,
+  },
+  quickRouteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+  },
+  quickRouteText: {
+    fontFamily: fonts.sansSemiBold,
+    fontSize: 11,
+    color: colors.gold,
   },
 });

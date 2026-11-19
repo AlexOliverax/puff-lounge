@@ -1,5 +1,6 @@
 /**
  * Modal / Painel de Filtros Granulares para a Descoberta de Lounges.
+ * Inclui Tipo de Espaço, Disponibilidade (Aberto Agora), Ordenação, Finalidade, Raio e Comodidades.
  */
 import React from 'react';
 import {
@@ -13,9 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from './ui';
 import { AMENITIES, CATEGORY_META } from '../data/amenities';
-import { RADIUS_OPTIONS, useExploreStore } from '../store/useExploreStore';
-import { colors, fonts, radius, spacing, type } from '../theme';
-import { AmenityId, VenueCategory, VenueUsage } from '../types';
+import { RADIUS_OPTIONS, SortMode, useExploreStore } from '../store/useExploreStore';
+import { colors, fonts, radius, spacing } from '../theme';
+import { VenueCategory } from '../types';
 
 interface FilterModalProps {
   visible: boolean;
@@ -25,6 +26,8 @@ interface FilterModalProps {
 export const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose }) => {
   const {
     filters,
+    sort,
+    setSort,
     toggleCategory,
     setUsage,
     toggleAmenity,
@@ -35,20 +38,73 @@ export const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose }) =>
 
   const categories: VenueCategory[] = ['lounge', 'shop', 'club'];
   const distances = RADIUS_OPTIONS;
+  const sortOptions: { id: SortMode; label: string; icon: string }[] = [
+    { id: 'distance', label: 'Mais Próximos', icon: 'navigate-outline' },
+    { id: 'rating', label: 'Melhor Avaliados', icon: 'star-outline' },
+    { id: 'name', label: 'Ordem A–Z', icon: 'text-outline' },
+  ];
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.modalContent}>
           {/* Cabeçalho do Modal */}
           <View style={styles.header}>
-            <Text style={styles.title}>Filtros Exclusivos</Text>
+            <Text style={styles.title}>Filtros & Ordenação</Text>
             <Pressable onPress={onClose} hitSlop={8}>
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+            {/* Ordenação */}
+            <Text style={styles.sectionLabel}>ORDENAR RESULTADOS POR</Text>
+            <View style={styles.chipRow}>
+              {sortOptions.map((s) => {
+                const active = sort === s.id;
+                return (
+                  <Pressable
+                    key={s.id}
+                    onPress={() => setSort(s.id)}
+                    style={[styles.chip, active && styles.chipActive]}
+                  >
+                    <Ionicons
+                      name={s.icon as any}
+                      size={14}
+                      color={active ? colors.gold : colors.textSecondary}
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                      {s.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Disponibilidade de Horário */}
+            <Text style={styles.sectionLabel}>DISPONIBILIDADE</Text>
+            <View style={styles.chipRow}>
+              <Pressable
+                onPress={() => setOpenNow(false)}
+                style={[styles.chip, !filters.openNow && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, !filters.openNow && styles.chipTextActive]}>
+                  Qualquer Horário
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setOpenNow(true)}
+                style={[styles.chip, filters.openNow && styles.chipActive]}
+              >
+                <View style={styles.greenDot} />
+                <Text style={[styles.chipText, filters.openNow && styles.chipTextActive]}>
+                  Somente Abertos Agora
+                </Text>
+              </Pressable>
+            </View>
+
             {/* Categoria */}
             <Text style={styles.sectionLabel}>TIPO DE ESPAÇO</Text>
             <View style={styles.chipRow}>
@@ -74,7 +130,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose }) =>
               {[
                 { id: 'all', label: 'Todos' },
                 { id: 'smoke', label: 'Fumar no Local' },
-                { id: 'purchase', label: 'Somente Compra' },
+                { id: 'purchase', label: 'Compra / Umidor' },
               ].map((u) => {
                 const active = filters.usage === u.id;
                 return (
@@ -142,7 +198,13 @@ export const FilterModal: React.FC<FilterModalProps> = ({ visible, onClose }) =>
 
           {/* Rodapé de Ações */}
           <View style={styles.footer}>
-            <Pressable onPress={resetFilters} style={styles.clearBtn}>
+            <Pressable
+              onPress={() => {
+                resetFilters();
+                setSort('distance');
+              }}
+              style={styles.clearBtn}
+            >
               <Text style={styles.clearBtnText}>Limpar Tudo</Text>
             </Pressable>
             <Button
@@ -163,14 +225,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   modalContent: {
+    width: '100%',
+    maxWidth: 620,
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     borderTopWidth: 1,
     borderColor: colors.border,
-    maxHeight: '85%',
+    maxHeight: '88%',
     paddingTop: spacing.lg,
   },
   header: {
@@ -189,7 +254,7 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
   },
   sectionLabel: {
     fontFamily: fonts.sansSemiBold,
@@ -205,6 +270,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: radius.pill,
@@ -224,6 +291,13 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: colors.gold,
     fontFamily: fonts.sansBold,
+  },
+  greenDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+    marginRight: 6,
   },
   amenitiesGrid: {
     flexDirection: 'row',

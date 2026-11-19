@@ -6,12 +6,15 @@
  * 4. Umidor (Favoritos & Notas Pessoais)
  */
 import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius } from '../../src/theme';
+import { useUserStore } from '../../src/store/useUserStore';
+import { colors, fonts } from '../../src/theme';
 
 export default function TabLayout() {
+  const humidorCount = useUserStore((s) => s.humidor.length);
+
   return (
     <Tabs
       screenOptions={{
@@ -22,7 +25,7 @@ export default function TabLayout() {
           backgroundColor: '#141312',
           borderTopColor: 'rgba(212, 175, 55, 0.25)',
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 88 : 65,
+          height: Platform.OS === 'ios' ? 88 : 68,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: 8,
           shadowColor: '#000',
@@ -80,6 +83,13 @@ export default function TabLayout() {
         name="humidor"
         options={{
           title: 'Meu Umidor',
+          tabBarBadge: humidorCount > 0 ? humidorCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: colors.gold,
+            color: '#0F0E0E',
+            fontFamily: fonts.sansBold,
+            fontSize: 10,
+          },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'shield' : 'shield-outline'}
